@@ -1,5 +1,7 @@
 # Credit Risk Classification
 
+**Live Demo:** https://credit-risk-classification101.streamlit.app/
+
 ## 1. Problem Statement
 
 - **What is the problem?** Banks and lenders need to decide whether a loan applicant is likely to pay back a loan on time (**Low Risk / Good**) or fail to pay (**High Risk / Bad**). Checking every application by hand takes a lot of time and can be inconsistent.
