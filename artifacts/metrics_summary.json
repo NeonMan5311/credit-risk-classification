@@ -1,0 +1,355 @@
+{
+  "dataset": {
+    "total_records": 1000,
+    "num_features": 15,
+    "positive_class": "bad (High Risk)",
+    "negative_class": "good (Low Risk)",
+    "class_distribution": {
+      "good_0": 700,
+      "bad_1": 300
+    },
+    "splits": {
+      "train": 600,
+      "validation": 200,
+      "test": 200
+    }
+  },
+  "best_model_name": "SVM",
+  "models": {
+    "Logistic Regression": {
+      "best_params": {
+        "C": 0.05
+      },
+      "validation": {
+        "accuracy": 0.73,
+        "precision": 0.5333,
+        "recall": 0.8,
+        "f1": 0.64,
+        "roc_auc": 0.829,
+        "pr_auc": 0.6717,
+        "confusion_matrix": {
+          "tn": 98,
+          "fp": 42,
+          "fn": 12,
+          "tp": 48
+        }
+      },
+      "test": {
+        "accuracy": 0.71,
+        "precision": 0.5128,
+        "recall": 0.6667,
+        "f1": 0.5797,
+        "roc_auc": 0.7838,
+        "pr_auc": 0.6388,
+        "confusion_matrix": {
+          "tn": 102,
+          "fp": 38,
+          "fn": 20,
+          "tp": 40
+        }
+      }
+    },
+    "SVM": {
+      "best_params": {
+        "C": 0.5,
+        "kernel": "rbf"
+      },
+      "validation": {
+        "accuracy": 0.74,
+        "precision": 0.5417,
+        "recall": 0.8667,
+        "f1": 0.6667,
+        "roc_auc": 0.8365,
+        "pr_auc": 0.6731,
+        "confusion_matrix": {
+          "tn": 96,
+          "fp": 44,
+          "fn": 8,
+          "tp": 52
+        }
+      },
+      "test": {
+        "accuracy": 0.69,
+        "precision": 0.4886,
+        "recall": 0.7167,
+        "f1": 0.5811,
+        "roc_auc": 0.7745,
+        "pr_auc": 0.5566,
+        "confusion_matrix": {
+          "tn": 95,
+          "fp": 45,
+          "fn": 17,
+          "tp": 43
+        }
+      }
+    },
+    "Decision Tree": {
+      "best_params": {
+        "max_depth": 3,
+        "min_samples_leaf": 10
+      },
+      "validation": {
+        "accuracy": 0.635,
+        "precision": 0.4472,
+        "recall": 0.9167,
+        "f1": 0.6011,
+        "roc_auc": 0.7479,
+        "pr_auc": 0.486,
+        "confusion_matrix": {
+          "tn": 72,
+          "fp": 68,
+          "fn": 5,
+          "tp": 55
+        }
+      },
+      "test": {
+        "accuracy": 0.605,
+        "precision": 0.4228,
+        "recall": 0.8667,
+        "f1": 0.5683,
+        "roc_auc": 0.6927,
+        "pr_auc": 0.4299,
+        "confusion_matrix": {
+          "tn": 69,
+          "fp": 71,
+          "fn": 8,
+          "tp": 52
+        }
+      }
+    },
+    "KNN": {
+      "best_params": {
+        "n_neighbors": 21,
+        "weights": "distance"
+      },
+      "validation": {
+        "accuracy": 0.725,
+        "precision": 0.6923,
+        "recall": 0.15,
+        "f1": 0.2466,
+        "roc_auc": 0.786,
+        "pr_auc": 0.603,
+        "confusion_matrix": {
+          "tn": 136,
+          "fp": 4,
+          "fn": 51,
+          "tp": 9
+        }
+      },
+      "test": {
+        "accuracy": 0.745,
+        "precision": 0.68,
+        "recall": 0.2833,
+        "f1": 0.4,
+        "roc_auc": 0.7924,
+        "pr_auc": 0.5999,
+        "confusion_matrix": {
+          "tn": 132,
+          "fp": 8,
+          "fn": 43,
+          "tp": 17
+        }
+      }
+    }
+  },
+  "error_analysis": {
+    "summary_by_outcome": {
+      "FN (Missed High Risk)": {
+        "count": 17,
+        "avg_credit_amount": 2833.06,
+        "avg_duration_months": 16.76,
+        "avg_age": 36.29,
+        "top_checking_status": "no checking",
+        "top_credit_history": "existing paid"
+      },
+      "FP (Good Flagged as High Risk)": {
+        "count": 45,
+        "avg_credit_amount": 3646.84,
+        "avg_duration_months": 21.16,
+        "avg_age": 33.56,
+        "top_checking_status": "<0",
+        "top_credit_history": "existing paid"
+      },
+      "TN (Cleared Low Risk)": {
+        "count": 95,
+        "avg_credit_amount": 2615.71,
+        "avg_duration_months": 17.69,
+        "avg_age": 37.54,
+        "top_checking_status": "no checking",
+        "top_credit_history": "critical/other existing credit"
+      },
+      "TP (Caught High Risk)": {
+        "count": 43,
+        "avg_credit_amount": 5742.19,
+        "avg_duration_months": 31.72,
+        "avg_age": 31.0,
+        "top_checking_status": "<0",
+        "top_credit_history": "existing paid"
+      }
+    },
+    "top_false_negatives": [
+      {
+        "checking_status": "no checking",
+        "duration": 12,
+        "credit_amount": 1386,
+        "credit_history": "existing paid",
+        "age": 26,
+        "y_prob": 0.0686
+      },
+      {
+        "checking_status": "no checking",
+        "duration": 18,
+        "credit_amount": 1808,
+        "credit_history": "delayed previously",
+        "age": 22,
+        "y_prob": 0.0972
+      },
+      {
+        "checking_status": ">=200",
+        "duration": 10,
+        "credit_amount": 1240,
+        "credit_history": "existing paid",
+        "age": 48,
+        "y_prob": 0.1136
+      },
+      {
+        "checking_status": "0<=X<200",
+        "duration": 12,
+        "credit_amount": 1484,
+        "credit_history": "existing paid",
+        "age": 25,
+        "y_prob": 0.1201
+      },
+      {
+        "checking_status": ">=200",
+        "duration": 12,
+        "credit_amount": 939,
+        "credit_history": "critical/other existing credit",
+        "age": 28,
+        "y_prob": 0.1327
+      }
+    ],
+    "top_false_positives": [
+      {
+        "checking_status": "<0",
+        "duration": 24,
+        "credit_amount": 3149,
+        "credit_history": "existing paid",
+        "age": 22,
+        "y_prob": 0.8289
+      },
+      {
+        "checking_status": "<0",
+        "duration": 36,
+        "credit_amount": 3959,
+        "credit_history": "existing paid",
+        "age": 30,
+        "y_prob": 0.8162
+      },
+      {
+        "checking_status": "<0",
+        "duration": 12,
+        "credit_amount": 1200,
+        "credit_history": "existing paid",
+        "age": 23,
+        "y_prob": 0.7642
+      },
+      {
+        "checking_status": "<0",
+        "duration": 21,
+        "credit_amount": 2606,
+        "credit_history": "existing paid",
+        "age": 28,
+        "y_prob": 0.7545
+      },
+      {
+        "checking_status": "0<=X<200",
+        "duration": 30,
+        "credit_amount": 3832,
+        "credit_history": "existing paid",
+        "age": 22,
+        "y_prob": 0.6903
+      }
+    ]
+  },
+  "fairness_audit": {
+    "age_group": [
+      {
+        "group": "19-29",
+        "count": 85,
+        "actual_high_risk_rate": 0.4,
+        "predicted_high_risk_rate": 0.6,
+        "recall_tpr": 0.7941,
+        "false_positive_rate": 0.4706
+      },
+      {
+        "group": "30-50",
+        "count": 93,
+        "actual_high_risk_rate": 0.2258,
+        "predicted_high_risk_rate": 0.3226,
+        "recall_tpr": 0.619,
+        "false_positive_rate": 0.2361
+      },
+      {
+        "group": "51+",
+        "count": 22,
+        "actual_high_risk_rate": 0.2273,
+        "predicted_high_risk_rate": 0.3182,
+        "recall_tpr": 0.6,
+        "false_positive_rate": 0.2353
+      }
+    ],
+    "foreign_worker": [
+      {
+        "group": "no",
+        "count": 8,
+        "actual_high_risk_rate": 0.125,
+        "predicted_high_risk_rate": 0.125,
+        "recall_tpr": 1.0,
+        "false_positive_rate": 0.0
+      },
+      {
+        "group": "yes",
+        "count": 192,
+        "actual_high_risk_rate": 0.3073,
+        "predicted_high_risk_rate": 0.4531,
+        "recall_tpr": 0.7119,
+        "false_positive_rate": 0.3383
+      }
+    ],
+    "personal_status": [
+      {
+        "group": "female div/dep/mar",
+        "count": 68,
+        "actual_high_risk_rate": 0.3529,
+        "predicted_high_risk_rate": 0.4706,
+        "recall_tpr": 0.7083,
+        "false_positive_rate": 0.3409
+      },
+      {
+        "group": "male div/sep",
+        "count": 9,
+        "actual_high_risk_rate": 0.5556,
+        "predicted_high_risk_rate": 0.7778,
+        "recall_tpr": 0.8,
+        "false_positive_rate": 0.75
+      },
+      {
+        "group": "male mar/wid",
+        "count": 17,
+        "actual_high_risk_rate": 0.2941,
+        "predicted_high_risk_rate": 0.5294,
+        "recall_tpr": 0.4,
+        "false_positive_rate": 0.5833
+      },
+      {
+        "group": "male single",
+        "count": 106,
+        "actual_high_risk_rate": 0.2453,
+        "predicted_high_risk_rate": 0.3774,
+        "recall_tpr": 0.7692,
+        "false_positive_rate": 0.25
+      }
+    ]
+  }
+}
