@@ -88,10 +88,6 @@ def main() -> None:
 
     st.title("Credit Risk Classification Prototype")
     st.caption("A decision-support demonstration using the UCI Statlog (German Credit) dataset.")
-    st.info(
-        "**Note:** This tool is for educational and decision-support demonstration only. "
-        "It is not meant to replace human review or real-world bank underwriting."
-    )
 
     if not (ARTIFACTS_DIR / "all_models.joblib").exists():
         st.error("Trained models not found. Please run `python -m src.train_evaluate` first.")
