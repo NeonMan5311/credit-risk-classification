@@ -1,118 +1,119 @@
-# Credit Risk Classification (Decision-Support Prototype)
-
-> **Important Disclaimer:** This project is an educational and **decision-support demonstration only**. It is **not** validated for production lending, automated credit underwriting, or regulatory compliance, and should never be used as the sole basis for financial decisions affecting real applicants.
+# Credit Risk Classification
 
 ---
 
 ## 1. Problem Statement
 
-- **Real-World Problem:** Financial institutions and micro-lenders must assess whether a loan applicant is likely to repay a loan (`good` / Low Risk) or default (`bad` / High Risk) based on financial standing, credit history, and loan structure. Manual underwriting is time-consuming and inconsistent, while uncalibrated automated rules can either expose lenders to high default losses or unfairly deny creditworthy applicants.
-- **Intended Users:** Credit analysts, risk-modeling students, and underwriting teams seeking a transparent decision-support triage tool to prioritize manual review.
-- **Expected Benefit:** Consistent risk scoring, explicit probability estimates for threshold tuning, and interpretable risk drivers (e.g., checking account liquidity, loan duration, credit history) to support faster, more consistent human-in-the-loop review.
+- **What is the problem?** Banks and lenders need to decide whether a loan applicant is likely to pay back a loan on time (**Low Risk / Good**) or fail to pay (**High Risk / Bad**). Checking every application by hand takes a lot of time and can be inconsistent.
+- **Who is it for?** Loan officers, credit analysts, and students learning how machine learning can support financial decisions.
+- **What is the benefit?** A simple risk score helps reviewers spot high-risk applications faster, apply consistent criteria, and focus their manual review on borderline cases.
 
 ---
 
-## 2. Dataset Documentation
+## 2. Dataset
 
-- **Source:** UCI Machine Learning Repository — *Statlog (German Credit Data)* (loaded via `scikit-learn` `fetch_openml('credit-g', version=1)` and cached locally at `data/german_credit.csv`).
-- **Records & Features:** **1,000 records**, **20 raw attributes** (7 numeric, 13 categorical), and **1 binary target variable** (`class`). After removing 5 redundant, obsolete, or protected attributes (`own_telephone`, `num_dependents`, `residence_since`, `personal_status`, `foreign_worker`), **15 core financial, employment, collateral, and repayment features** (5 numeric, 10 categorical) are used for modeling and in the prototype UI.
-- **Target Variable & Class Imbalance:**
-  - `good` (`0`, Low Risk): **700 records (70.0%)**
-  - `bad` (`1`, High Risk / Positive Class): **300 records (30.0%)**
-  - Framing `bad` as the positive class (`1`) ensures Precision, Recall, F1, ROC-AUC, and PR-AUC directly measure the model's ability to detect high-risk applications.
-- **Selected Model Features (15):** `checking_status`, `duration` (months), `credit_history`, `purpose`, `credit_amount` (DM), `savings_status`, `employment`, `installment_commitment`, `other_parties`, `property_magnitude`, `age`, `other_payment_plans`, `housing`, `existing_credits`, `job`.
-- **Excluded Attributes (5):** `own_telephone` (obsolete 1994 landline indicator), `num_dependents` (near-constant: 85% equal `1`), `residence_since` (weak non-financial proxy), `personal_status` (gender/marital status), and `foreign_worker` (protected attribute with 96.3% single-class imbalance).
+- **Source:** UCI Machine Learning Repository — *Statlog (German Credit Data)*, saved locally at `data/german_credit.csv`.
+- **Size:** **1,000 loan records** with **20 original columns** and **1 target column** (`class`).
+- **Target Variable (`class`):**
+  - `good` (`0`, Low Risk): **700 records (70%)**
+  - `bad` (`1`, High Risk): **300 records (30%)**
+- **Feature Selection (15 Core Attributes):**
+  To keep the model focused on real financial and repayment factors, we removed **5 unnecessary or sensitive columns**:
+  - `own_telephone` (outdated 1994 landline phone question)
+  - `num_dependents` (almost always `1`, adds little information)
+  - `residence_since` (weak non-financial detail)
+  - `personal_status` (gender and marital status)
+  - `foreign_worker` (sensitive personal status, and 96.3% of rows are `yes`)
+  - **Remaining 15 attributes:** `checking_status`, `duration`, `credit_history`, `purpose`, `credit_amount`, `savings_status`, `employment`, `installment_commitment`, `other_parties`, `property_magnitude`, `age`, `other_payment_plans`, `housing`, `existing_credits`, and `job`.
 - **Data Limitations:**
-  1. **Historical & Currency Context:** Collected in 1994 in Germany with loan amounts in Deutsche Marks (DM); monetary thresholds do not reflect modern inflation or other geographies.
-  2. **Small Sample Size:** 1,000 rows limits statistical power, especially for rare subgroups (e.g., `foreign_worker = no` has only 8 test samples).
-  3. **No Macroeconomic / Post-Loan Variables:** Lacks debt-to-income ratio, employment sector stability, or macroeconomic shock indicators.
-  4. **Sensitive Demographic Attributes:** Contains `age`, `personal_status` (encoding gender & marital status), and `foreign_worker`, which pose fairness and regulatory risks if used directly in real-world lending.
+  1. **Old & Local Data:** Collected in 1994 in Germany using Deutsche Marks (DM), so the money amounts do not match today's prices or other countries.
+  2. **Small Size:** 1,000 rows is small for machine learning, especially when checking smaller groups.
+  3. **Missing Context:** The data does not include overall economic conditions (like inflation or unemployment rates).
 
 ---
 
-## 3. Algorithm Implementation & Comparison
+## 3. Algorithms Compared
 
-All four recommended algorithms are implemented inside leak-free `scikit-learn` `Pipeline`s (`SimpleImputer` + `StandardScaler` for numeric features; `SimpleImputer` + `OneHotEncoder` for categorical features, fit **only** on the training split):
+We trained and compared four standard classification algorithms using `scikit-learn`:
 
-1. **Logistic Regression** (`class_weight='balanced'`, tuned `C=0.05`) — linear, highly interpretable log-odds baseline.
-2. **Support Vector Machine (SVM)** (`SVC(probability=True, class_weight='balanced')`, tuned `C=0.5, kernel='rbf'`) — non-linear margin-based classifier.
-3. **Decision Tree** (`class_weight='balanced'`, tuned `max_depth=3, min_samples_leaf=10`) — rule-based, human-readable splits.
-4. **K-Nearest Neighbors (KNN)** (tuned `n_neighbors=21, weights='distance'`) — instance-based distance classifier.
+1. **Logistic Regression:** A simple, transparent linear model that shows which features increase or decrease risk.
+2. **Support Vector Machine (SVM):** Finds a curved boundary to separate low-risk and high-risk applicants.
+3. **Decision Tree:** Learns easy-to-read if/then rules (limited to depth 3 so it does not overfit).
+4. **K-Nearest Neighbors (KNN):** Predicts risk by looking at the most similar past applicants.
+
+All missing values are filled in and numbers are scaled using **only** the training data so there is no data leakage.
 
 ---
 
-## 4. Evaluation Strategy & Results
+## 4. Evaluation & Error Analysis
 
-### Train / Validation / Test Split
-- **Stratified 60% / 20% / 20% split** (`random_state=42`):
-  - **Train:** 600 records (420 good / 180 bad)
-  - **Validation:** 200 records (140 good / 60 bad) — used exclusively for hyperparameter selection via **Validation ROC-AUC**.
-  - **Test:** 200 records (140 good / 60 bad) — held out for final reporting.
+### Data Split
+We split the 1,000 records into three parts while keeping the 70% / 30% class balance in each:
+- **Training set:** 600 records (used to train the models)
+- **Validation set:** 200 records (used to pick the best settings for each model)
+- **Test set:** 200 records (kept completely separate for final grading)
 
-### Held-Out Test Set Performance (Imbalanced Classification Metrics)
+### Why Accuracy Alone Is Not Enough
+Because 70% of applicants are `good`, a model can get ~70% accuracy just by guessing `good` most of the time. For example, **KNN** gets the highest accuracy (**0.745**), but it only catches **28.3%** of actual defaults (`Recall = 0.283`). That is why we also check **Precision**, **Recall**, **F1-Score**, **ROC-AUC**, and **PR-AUC**.
 
-Because the dataset is imbalanced (70% good / 30% bad), **accuracy alone is misleading**. Notice that KNN achieves the highest accuracy (`0.745`), yet KNN's Recall is only `0.283` (catching less than a third of defaults), whereas SVM and Logistic Regression achieve higher F1 (`0.581` / `0.580`) and Recall (`0.717` / `0.667`).
+### Held-Out Test Set Results
 
-| Model | Best Val Params | Accuracy | Precision | Recall | F1-Score | ROC-AUC | PR-AUC |
+| Model | Best Settings | Accuracy | Precision | Recall | F1-Score | ROC-AUC | PR-AUC |
 | :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
 | **Logistic Regression** | `C=0.05` | 0.710 | 0.513 | 0.667 | 0.580 | 0.784 | **0.639** |
-| **SVM (RBF)** *(Best Val ROC-AUC)* | `C=0.5, kernel='rbf'` | 0.690 | 0.489 | 0.717 | **0.581** | 0.774 | 0.557 |
+| **SVM (RBF)** *(Best Validation ROC-AUC)* | `C=0.5, kernel='rbf'` | 0.690 | 0.489 | 0.717 | **0.581** | 0.774 | 0.557 |
 | **Decision Tree** | `max_depth=3, min_samples_leaf=10` | 0.605 | 0.423 | **0.867** | 0.568 | 0.693 | 0.430 |
 | **KNN** | `n_neighbors=21, weights='distance'` | **0.745** | **0.680** | 0.283 | 0.400 | **0.792** | 0.600 |
 
-Generated evaluation plots are saved in `artifacts/plots/`:
+Charts are saved in `artifacts/plots/`:
 - `model_comparison.png`
 - `roc_pr_curves.png`
 - `confusion_matrices.png`
 - `feature_importance.png`
 
-### Error Analysis (Test Set — SVM)
-- **False Negatives (17 Missed High-Risk Cases):** Averaged smaller loans (`2,809 DM`) and shorter durations (`15.5 months`), often with `no checking` account status and `existing paid` credit history—making them look superficially similar to low-risk borrowers.
-- **False Positives (48 Good Applicants Flagged as High-Risk):** Averaged larger loans (`3,942 DM`), longer durations (`22.7 months`), younger age (`31.8` vs `38.6` for True Negatives), and `<0` checking status. In lending, False Negatives carry direct default loss, while False Positives unfairly deny credit to creditworthy applicants—highlighting why human review of borderline cases is essential.
+### Error Analysis (What Mistakes Does the Model Make?)
+Looking at the **SVM** results on the 200 test cases:
+- **False Negatives (Missed High-Risk Applicants):** These were often smaller loans with shorter durations and `no checking` account on file, so they looked similar to safe borrowers.
+- **False Positives (Good Applicants Flagged as High-Risk):** These were often larger loans, longer durations, or applicants with `<0` (overdrawn) checking accounts. In real life, a False Negative costs the bank money, while a False Positive unfairly turns away a good customer.
 
 ---
 
-## 5. Ethics, Bias & Responsible Use
+## 5. Ethics & Responsible Use
 
-- **Privacy & Data Minimization:** Credit applications contain sensitive financial and demographic data. Production systems must minimize PII, encrypt data at rest/in transit, and comply with applicable data protection laws.
-- **Algorithmic Bias & Protected Attributes:** The dataset includes `age`, `personal_status` (gender/marital status), and `foreign_worker`. Our empirical **Subgroup Fairness Audit** on the held-out test set (SVM) shows substantial disparities in False Positive Rates (FPR):
-  - **Age `19-29`:** `FPR = 0.549` (54.9% of good young applicants flagged as high-risk) vs `0.222` for ages `30-50` and `0.235` for `51+`.
-  - **Personal Status:** `female div/dep/mar` has `FPR = 0.409` vs `0.275` for `male single`.
-  - **Proxy Risk:** Even if protected columns are removed, correlated variables (`residence_since`, `employment`, `housing`) can act as proxies.
-- **Potential Harm & Responsible Use:**
-  - Automated rejection without explanation harms financial inclusion and can violate fair-lending laws (e.g., ECOA / EU AI Act high-risk AI obligations).
-  - **Mitigation:** Use predictions strictly as **decision-support**, pair with human-in-the-loop review, provide adverse-action explanations (e.g., via Logistic Regression coefficients), and regularly audit subgroup error rates.
+- **Privacy:** Loan applications contain private financial details. Real systems must protect personal data and collect only what is needed.
+- **Fairness & Bias:** Even after removing `personal_status` and `foreign_worker` from the model, we checked how the model performed across different groups on the test set. Younger applicants (`19–29`) and certain demographic groups still had higher false-alarm rates than older applicants (`30–50`).
+- **Responsible Use:** Because of these biases and the small 1994 dataset, this model should **only** be used as a helper tool alongside a human reviewer, never as an automatic rejection system.
 
 ---
 
-## 6. Reproducibility & Run Instructions
+## 6. How to Run
 
-### Project Structure
+### Project Files
 ```text
 credit-risk-classification/
-├── app.py                              # Interactive Streamlit prototype
-├── data/german_credit.csv              # Cached UCI Statlog German Credit dataset
-├── notebooks/credit_risk_classification.ipynb  # Reproducible Jupyter notebook
+├── app.py                                      # Interactive Streamlit web app
+├── data/german_credit.csv                      # Dataset
+├── notebooks/credit_risk_classification.ipynb  # Jupyter notebook version
 ├── src/
-│   ├── data_loader.py                  # Dataset loading & target encoding
-│   ├── preprocessing.py                # Leak-free ColumnTransformer & 60/20/20 split
-│   └── train_evaluate.py               # Training, tuning, evaluation, plots, error & fairness audit
-├── artifacts/                          # Saved models, metrics_summary.json, and plots
-├── tests/test_pipeline.py              # Automated verification tests
-└── requirements.txt                    # Package dependencies
+│   ├── data_loader.py                          # Loads data and selects 15 features
+│   ├── preprocessing.py                        # Splits data and scales/encodes features
+│   └── train_evaluate.py                       # Trains models, saves plots & metrics
+├── artifacts/                                  # Saved models, metrics, and plots
+├── tests/test_pipeline.py                      # Automated tests
+└── requirements.txt                            # Python packages needed
 ```
 
-### Setup & Run Commands
+### Commands
 ```bash
-# 1. Install dependencies
+# 1. Install required packages
 pip install -r requirements.txt
 
-# 2. Train & evaluate all 4 models (generates artifacts/metrics_summary.json & plots)
+# 2. Train and evaluate all 4 models
 python -m src.train_evaluate
 
 # 3. Run automated tests
-pytest -v
+python -m pytest -v
 
-# 4. Launch the interactive Streamlit prototype
+# 4. Start the interactive web app
 streamlit run app.py
 ```
